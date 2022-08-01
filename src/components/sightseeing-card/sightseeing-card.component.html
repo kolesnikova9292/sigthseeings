@@ -1,0 +1,14 @@
+<div class="card">
+
+  <h4 class = "header" [innerHTML]="tour?.title"></h4>
+
+  <span>Price: {{tour?.price}} {{tour?.currency}}</span>
+
+  <span>Rating: {{tour?.rating}} </span>
+
+  <span>{{tour | json}} </span>
+
+  <button (click)="addTour(tour)">Add to cart</button>
+
+</div>
+

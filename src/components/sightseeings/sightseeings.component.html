@@ -1,0 +1,16 @@
+<input type="search" placeholder="Search..." class="search" [formControl]="searchControl">
+
+
+<div
+  fxLayout="row wrap"
+  fxLayout.lt-sm="column"
+  fxLayoutGap=""
+  fxLayoutAlign="flex-start">
+  <ng-container *ngFor="let tour of sightseeings$ | async">
+    <sightseeing-card [tour]="tour"
+      fxFlex="0 1 25%"
+      fxFlex.lt-md="0 1 50%"
+      fxFlex.lt-sm="100%"
+    ></sightseeing-card>
+  </ng-container>
+</div>

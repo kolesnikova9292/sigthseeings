@@ -1,0 +1,55 @@
+
+<h3>Your choice</h3>
+
+<button (click)="returnToList()">Return to list</button>
+
+
+<div
+  fxLayout="column"
+  fxLayout.lt-sm="column"
+  fxLayoutGap=""
+  fxLayoutAlign="flex-start"
+  *ngFor="let item of checkedItems$ | async">
+
+  <div
+    fxLayout="row wrap"
+    fxLayout.lt-sm="column"
+    fxLayoutGap=""
+    fxLayoutAlign="flex-start"
+    class="tour">
+    <span
+      fxFlex="0 1 50%"
+      fxFlex.lt-md="0 1 100%"
+      fxFlex.lt-sm="100%"
+    >
+      {{item.title}}
+    </span>
+    <span
+      fxFlex="0 1 auto"
+      fxFlex.lt-md="0 1 auto"
+      fxFlex.lt-sm="100%"
+    >
+      Rating: {{item.rating}}
+    </span>
+    <div
+      class="amount"
+      fxFlex="0 1 25%"
+      fxFlex.lt-md="0 1 25%"
+      fxFlex.lt-sm="100%"
+    >
+
+      <button (click)="changeAmount('minusOne', item)" class="changeAmount">
+        <img src="assets/minus.svg" [attr.alt]="'Minus'" width="16" height="16" />
+      </button>
+      <span>
+      {{ item.count }} tickets
+    </span>
+      <button (click)="changeAmount('plusOne', item)" class="changeAmount">
+        <img src="assets/plus.svg" [attr.alt]="'Plus'"  width="16" height="16" />
+      </button>
+
+    </div>
+  </div>
+</div>
+
+
