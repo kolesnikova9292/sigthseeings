@@ -1,5 +1,6 @@
 import {Component, Input} from "@angular/core";
 import {PubSubService} from "../../services/pub-sub.service";
+import {ITour} from "../../models/tour";
 
 
 @Component({
@@ -10,14 +11,15 @@ import {PubSubService} from "../../services/pub-sub.service";
 export class SightseeingCardComponent {
 
   @Input()
-  tour: any;
+  tour?: ITour;
 
   constructor(private pubSubService:PubSubService){
   }
 
 
-  addTour(event: any) {
-    this.pubSubService.Stream.emit('add', event);
+  addTour(event: ITour | undefined) {
+    if(event)
+      this.pubSubService.Stream.emit('add', event);
   }
 
 }

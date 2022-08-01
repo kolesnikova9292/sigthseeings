@@ -1,40 +1,68 @@
-import {ReplaySubject} from "rxjs";
+import {filter, find, findIndex, isEmpty, map, mergeMap, Observable, of, ReplaySubject, switchMap, toArray} from "rxjs";
+import {SightseeingsService} from "./sightseeings.service";
+import {ITour} from "../models/tour";
 
 export class EventHandler extends ReplaySubject<any> {
 
-  checkedItems: any[] = [];
+  allItems?: Observable<ITour[]>;
 
-
-  constructor() {
+  constructor(private sightseeingsService: SightseeingsService) {
     super();
+    this.create();
   }
 
-  emit(key: string, value: any) {
+  create() {
+    this.allItems = this.sightseeingsService.getSightseeings().pipe(
+      mergeMap(data => data.map(item => { return { ...item, 'count': 0  } })),
+      toArray());
+    this.allItems?.subscribe()
+    super.next(this.allItems);
+  }
+
+  search(str: string): Observable<ITour[]> | null {
+   return this.allItems?.pipe(
+     mergeMap(data => data.filter(x => {
+       return x.title.toLowerCase().indexOf(str.toLowerCase()) > -1
+     })),
+      toArray()
+    ) || of([])
+  }
+
+
+  emit(key: string, value: ITour) {
     if (key == 'add') {
-      const indexOfItemWithThisId = this.checkedItems.indexOf(this.checkedItems.find(x => x.id === value.id));
-      if (indexOfItemWithThisId > -1) {
-        this.checkedItems[indexOfItemWithThisId].count++;
-      } else {
-        this.checkedItems.push({...value, count: 1});
-      }
-    }
-
-    if (key == 'plusOne') {
-      const indexOfItemWithThisId = this.checkedItems.indexOf(this.checkedItems.find(x => x.id === value.id));
-      this.checkedItems[indexOfItemWithThisId].count++;
-
+      this.allItems?.subscribe();
+      const result = this.allItems?.pipe(
+        map((data: ITour[]) => {
+          // @ts-ignore
+          data.find((x: ITour) => x.id === value.id).count++;
+          return data;
+        })
+      );
+      this.allItems = result;
+      super.next(this.allItems);
     }
 
     if (key == 'minusOne') {
-      const indexOfItemWithThisId = this.checkedItems.indexOf(this.checkedItems.find(x => x.id === value.id));
 
-      if (this.checkedItems[indexOfItemWithThisId].count >= 2)
-        this.checkedItems[indexOfItemWithThisId].count--;
-      else {
-        this.checkedItems.splice(indexOfItemWithThisId, 1);
-      }
+      const result = this.allItems?.pipe(
+
+        map((data: ITour[]) => {
+
+          // @ts-ignore
+          data.find((x:ITour) => x.id === value.id).count--;
+          // @ts-ignore
+          if(data?.find((x: ITour) => x.id === value.id)?.count < 0)
+            {
+              if(data?.find((x: ITour) => x.id === value.id) !== undefined)
+                (data.find((x: ITour) => x.id === value.id) as ITour).count = 0;
+            }
+          return data;
+        })
+      );
+
+      this.allItems = result
+      super.next(this.allItems);
     }
-
-    super.next(this.checkedItems);
   }
 }

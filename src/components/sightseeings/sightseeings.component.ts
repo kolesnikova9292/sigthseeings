@@ -1,8 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {SightseeingsService} from "../../services/sightseeings.service";
-import {debounceTime, distinctUntilChanged, filter, map, Observable, switchMap} from "rxjs";
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap, Observable, of, switchMap, tap, toArray} from "rxjs";
 import {FormControl} from "@angular/forms";
 import {PubSubService} from "../../services/pub-sub.service";
+import {ITour} from "../../models/tour";
 
 @Component({
   selector: 'sightseeings',
@@ -11,7 +12,7 @@ import {PubSubService} from "../../services/pub-sub.service";
 })
 export class SightseeingsComponent implements OnInit {
 
-  sightseeings$?: Observable<any>;
+  sightseeings$?: Observable<ITour[]>;
 
   public searchControl: FormControl = new FormControl();
 
@@ -19,10 +20,14 @@ export class SightseeingsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.sightseeings$ = this.sightseeingsService.getSightseeings()
+    this.searchControl.setValue(localStorage.getItem('input'));
 
-    this.sightseeings$.subscribe(x => {
-      console.log(x)
+    this.pubSubService.Stream.subscribe(items => {
+      this.sightseeings$ = items.pipe(
+        mergeMap((data: ITour[]) => data),
+        filter((y: ITour) => y.title.toLowerCase().indexOf(this.searchControl.value?.toLowerCase() || '') > -1),
+        toArray()
+      );
     })
 
     this.searchControl.valueChanges
@@ -31,13 +36,14 @@ export class SightseeingsComponent implements OnInit {
         filter((value: string) => value.length > 2 || value == ''),
         debounceTime(300),
         distinctUntilChanged(),
-        switchMap(value => this.sightseeings$ = this.sightseeingsService.getSightseeings(value)),
+        switchMap((value: string) => {
+          this.sightseeings$ = this.pubSubService.Stream.search(value) || of([])
+          return this.sightseeings$;
+        }),
+        tap(() => {
+          localStorage.setItem('input', this.searchControl.value );
+        })
       ).subscribe();
-
-    this.pubSubService.Stream.subscribe(x => {
-      console.log(x);
-      //this.sightseeings$?.pipe()
-    })
   }
 }
 
